@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rescate Elástico | EulerGames</title>
+  <style>
+    :root {
+      --panel: #ffffff;
+      --panel-2: #f4fbff;
+      --ink: #1f2d3d;
+      --muted: #66788a;
+      --line: #d7e6ef;
+      --accent: #1f8fbd;
+      --accent-dark: #146f94;
+      --good: #20895c;
+      --bad: #b94343;
+      --warn: #b8791f;
+      --shadow: 0 10px 25px rgba(20, 60, 90, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(#dff3ff, #f7fcff);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    .app {
+      width: min(1400px, 96vw);
+      margin: 0 auto;
+      padding: 18px 0 24px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .title-block h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.2vw, 2.4rem);
+      letter-spacing: 0.02em;
+    }
+
+    .title-block p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.96rem;
+    }
+
+    .badge {
+      background: #ffffffcc;
+      border: 1px solid var(--line);
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-weight: 650;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px minmax(500px, 1fr) 270px;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 14px 16px;
+      font-size: 1rem;
+      background: var(--panel-2);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .data-list {
+      padding: 12px 14px 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 14px;
+      border-bottom: 1px dashed #dce8f0;
+      padding-bottom: 8px;
+    }
+
+    .data-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .value {
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 560px;
+      background: #ffffff;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .canvas-overlay {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid rgba(190, 220, 235, 0.8);
+      border-radius: 14px;
+      padding: 9px 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .controls {
+      padding: 14px;
+      display: grid;
+      gap: 13px;
+    }
+
+    .compression-box {
+      background: #f4fbff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .compression-label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 4px;
+    }
+
+    .compression-value {
+      font-size: 2rem;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .compression-unit {
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    button {
+      border: none;
+      border-radius: 13px;
+      padding: 12px 10px;
+      font-weight: 750;
+      color: #ffffff;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.06s ease, background 0.15s ease, opacity 0.15s ease;
+      font-size: 0.94rem;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .secondary {
+      background: #6c7f91;
+    }
+
+    .secondary:hover {
+      background: #526777;
+    }
+
+    .launch {
+      background: #df7f24;
+      font-size: 1.05rem;
+      padding: 14px 10px;
+    }
+
+    .launch:hover {
+      background: #bd6718;
+    }
+
+    .continue {
+      background: var(--good);
+      display: none;
+    }
+
+    .continue:hover {
+      background: #176b48;
+    }
+
+    .tiny-help {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+      background: #f8fcff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .status {
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+      min-height: 82px;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .status-title {
+      font-size: 1.05rem;
+      font-weight: 850;
+    }
+
+    .status-body {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .status.good .status-title {
+      color: var(--good);
+    }
+
+    .status.bad .status-title {
+      color: var(--bad);
+    }
+
+    .status.warn .status-title {
+      color: var(--warn);
+    }
+
+    .meter {
+      height: 12px;
+      background: #e8f2f7;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #d8e8f0;
+      margin-top: 10px;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, #64b5d9, #1f8fbd);
+      border-radius: 999px;
+      transition: width 0.15s ease;
+    }
+
+    @media (max-width: 1050px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .canvas-wrap {
+        min-height: 470px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .badge {
+        white-space: normal;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="title-block">
+        <h1>Rescate Elástico</h1>
+        <p>Calcula la compresión del resorte y lanza la cápsula hacia la plataforma.</p>
+      </div>
+      <div class="badge" id="scoreBadge">Ronda 1 · Aciertos 0/0</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>Datos físicos</h2>
+        <div class="data-list">
+          <div class="data-row">
+            <span class="label">Masa de la cápsula</span>
+            <span class="value" id="massValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Constante del resorte</span>
+            <span class="value" id="springValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Ángulo de lanzamiento</span>
+            <span class="value" id="angleValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Altura de salida</span>
+            <span class="value" id="initialHeightValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Gravedad</span>
+            <span class="value">9.81 m/s²</span>
+          </div>
+        </div>
+
+        <h2>Objetivo</h2>
+        <div class="data-list">
+          <div class="data-row">
+            <span class="label">Distancia horizontal</span>
+            <span class="value" id="targetDistanceValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Altura de plataforma</span>
+            <span class="value" id="targetHeightValue">--</span>
+          </div>
+          <div class="data-row">
+            <span class="label">Zona segura</span>
+            <span class="value" id="safeZoneValue">--</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel canvas-wrap">
+        <canvas id="gameCanvas"></canvas>
+        <div class="canvas-overlay" id="canvasHint">
+          Sin trayectoria previa. Calcula, ajusta y lanza.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Controles</h2>
+        <div class="controls">
+          <div class="compression-box">
+            <div class="compression-label">Compresión seleccionada</div>
+            <div>
+              <span class="compression-value" id="compressionValue">1.00</span>
+              <span class="compression-unit">m</span>
+            </div>
+            <div class="meter" aria-hidden="true">
+              <div class="meter-fill" id="compressionMeter"></div>
+            </div>
+          </div>
+
+          <div class="button-grid">
+            <button id="coarseDownBtn">− 0.10 m</button>
+            <button id="coarseUpBtn">+ 0.10 m</button>
+            <button id="fineDownBtn" class="secondary">− 0.01 m</button>
+            <button id="fineUpBtn" class="secondary">+ 0.01 m</button>
+          </div>
+
+          <button id="launchBtn" class="launch">Lanzar</button>
+          <button id="continueBtn" class="continue">Continuar</button>
+          <button id="soundBtn" class="secondary">Sonido: apagado</button>
+
+          <div class="tiny-help">
+            Teclado: ← y → ajustan 0.10 m. ↑ y ↓ ajustan 0.01 m.
+            Enter lanza. R continúa a la siguiente ronda después del intento.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="status warn" id="statusBox">
+      <div class="status-title" id="statusTitle">Misión lista</div>
+      <div class="status-body" id="statusBody">
+        Lee los datos físicos, calcula la compresión necesaria y lanza la cápsula. Tienes un intento por ronda.
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const UI = {
+      massValue: document.getElementById("massValue"),
+      springValue: document.getElementById("springValue"),
+      angleValue: document.getElementById("angleValue"),
+      initialHeightValue: document.getElementById("initialHeightValue"),
+      targetDistanceValue: document.getElementById("targetDistanceValue"),
+      targetHeightValue: document.getElementById("targetHeightValue"),
+      safeZoneValue: document.getElementById("safeZoneValue"),
+      compressionValue: document.getElementById("compressionValue"),
+      compressionMeter: document.getElementById("compressionMeter"),
+      scoreBadge: document.getElementById("scoreBadge"),
+      statusBox: document.getElementById("statusBox"),
+      statusTitle: document.getElementById("statusTitle"),
+      statusBody: document.getElementById("statusBody"),
+      canvasHint: document.getElementById("canvasHint"),
+      coarseDownBtn: document.getElementById("coarseDownBtn"),
+      coarseUpBtn: document.getElementById("coarseUpBtn"),
+      fineDownBtn: document.getElementById("fineDownBtn"),
+      fineUpBtn: document.getElementById("fineUpBtn"),
+      launchBtn: document.getElementById("launchBtn"),
+      continueBtn: document.getElementById("continueBtn"),
+      soundBtn: document.getElementById("soundBtn")
+    };
+
+    const G = 9.81;
+    const MIN_COMPRESSION = 0.10;
+    const MAX_COMPRESSION = 3.00;
+    const COARSE_STEP = 0.10;
+    const FINE_STEP = 0.01;
+    const TIME_MARK_INTERVAL = 0.25;
+    const LAUNCHER_EXTRA_LENGTH = 0.35;
+
+    let round = 1;
+    let wins = 0;
+    let attempts = 0;
+    let selectedCompression = 1.00;
+    let params = null;
+
+    let hasLaunched = false;
+    let isAnimating = false;
+    let motionPhase = "ready";
+
+    let springStartTime = 0;
+    let springDuration = 0;
+    let projectileStartTime = 0;
+
+    let animationResult = null;
+    let lastResult = null;
+
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    const world = {
+      minX: -4.5,
+      maxX: 34,
+      minY: 0,
+      maxY: 12,
+      padLeft: 54,
+      padRight: 24,
+      padTop: 26,
+      padBottom: 46
+    };
+
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function randRound(min, max, decimals) {
+      const factor = Math.pow(10, decimals);
+      return Math.round(rand(min, max) * factor) / factor;
+    }
+
+    function roundTo(value, decimals) {
+      const factor = Math.pow(10, decimals);
+      return Math.round(value * factor) / factor;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function velocityFromCompression(x, p = params) {
+      return Math.sqrt((p.k * x * x) / p.m);
+    }
+
+    function componentsFromCompression(x, p = params) {
+      const v0 = velocityFromCompression(x, p);
+      const a = degToRad(p.angleDeg);
+
+      return {
+        v0,
+        vx: v0 * Math.cos(a),
+        vy: v0 * Math.sin(a)
+      };
+    }
+
+    function springAngularFrequency(p = params) {
+      return Math.sqrt(p.k / p.m);
+    }
+
+    function idealSpringReleaseTime(p = params) {
+      return (Math.PI / 2) * Math.sqrt(p.m / p.k);
+    }
+
+    function xAtTime(t, xCompression, p = params) {
+      const c = componentsFromCompression(xCompression, p);
+      return c.vx * t;
+    }
+
+    function yAtTime(t, xCompression, p = params) {
+      const c = componentsFromCompression(xCompression, p);
+      return p.h0 + c.vy * t - 0.5 * G * t * t;
+    }
+
+    function positiveGroundTime(xCompression, p = params) {
+      const c = componentsFromCompression(xCompression, p);
+      const disc = c.vy * c.vy + 2 * G * p.h0;
+      return (c.vy + Math.sqrt(disc)) / G;
+    }
+
+    function crossingTimeAtHeight(height, xCompression, p = params) {
+      const c = componentsFromCompression(xCompression, p);
+
+      const a = 0.5 * G;
+      const b = -c.vy;
+      const cc = height - p.h0;
+
+      const disc = b * b - 4 * a * cc;
+
+      if (disc < 0) {
+        return null;
+      }
+
+      const sqrtDisc = Math.sqrt(disc);
+      const t1 = (-b - sqrtDisc) / (2 * a);
+      const t2 = (-b + sqrtDisc) / (2 * a);
+
+      const candidates = [t1, t2]
+        .filter(t => t > 0)
+        .sort((a, b) => a - b);
+
+      if (candidates.length === 0) {
+        return null;
+      }
+
+      const descending = candidates.filter(t => c.vy - G * t <= 0);
+
+      if (descending.length > 0) {
+        return descending[descending.length - 1];
+      }
+
+      return candidates[candidates.length - 1];
+    }
+
+    function evaluateShot(xCompression) {
+      const c = componentsFromCompression(xCompression);
+      const tCross = crossingTimeAtHeight(params.targetY, xCompression);
+      const tGround = positiveGroundTime(xCompression);
+
+      let crossX = null;
+      let error = null;
+      let resultType = "miss";
+      let reason = "";
+      let win = false;
+
+      if (tCross === null) {
+        resultType = "no-height";
+        reason = "La cápsula no alcanzó la altura de la plataforma.";
+      } else {
+        crossX = c.vx * tCross;
+        error = crossX - params.targetX;
+
+        if (Math.abs(error) <= params.zoneHalf) {
+          win = true;
+          resultType = "win";
+          reason = "La cápsula cayó dentro de la zona segura.";
+        } else if (error < 0) {
+          resultType = "short";
+          reason = "La cápsula cayó antes de la zona segura.";
+        } else {
+          resultType = "long";
+          reason = "La cápsula se pasó de la plataforma.";
+        }
+      }
+
+      const endTime = win && tCross ? tCross : tGround;
+
+      return {
+        win,
+        resultType,
+        reason,
+        v0: c.v0,
+        vx: c.vx,
+        vy: c.vy,
+        tCross,
+        tGround,
+        endTime,
+        crossX,
+        error
+      };
+    }
+
+    function generateFairRound() {
+      for (let attempt = 0; attempt < 3000; attempt++) {
+        const p = {
+          m: randRound(5.0, 16.0, 1),
+          k: Math.round(rand(350, 1100) / 10) * 10,
+          angleDeg: randRound(30, 55, 1),
+          h0: randRound(3.0, 4.2, 1),
+          targetX: 0,
+          targetY: 0,
+          zoneHalf: randRound(0.45, 0.85, 2),
+          hiddenCorrectCompression: randRound(0.75, 2.25, 2)
+        };
+
+        const oldParams = params;
+        params = p;
+
+        const c = componentsFromCompression(p.hiddenCorrectCompression, p);
+        const tApex = c.vy / G;
+        const tGround = positiveGroundTime(p.hiddenCorrectCompression, p);
+
+        const minT = Math.max(tApex + 0.25, 0.85);
+        const maxT = tGround - 0.25;
+
+        if (maxT <= minT) {
+          params = oldParams;
+          continue;
+        }
+
+        const tTarget = rand(minT, maxT);
+        const targetX = roundTo(c.vx * tTarget, 1);
+        const targetY = roundTo(p.h0 + c.vy * tTarget - 0.5 * G * tTarget * tTarget, 1);
+
+        if (targetX < 9 || targetX > 28) {
+          params = oldParams;
+          continue;
+        }
+
+        if (targetY < 0.8 || targetY > 6.0) {
+          params = oldParams;
+          continue;
+        }
+
+        p.targetX = targetX;
+        p.targetY = targetY;
+
+        params = p;
+        const check = evaluateShot(p.hiddenCorrectCompression);
+
+        if (check.tCross && Math.abs(check.error) <= p.zoneHalf * 0.65) {
+          return p;
+        }
+
+        params = oldParams;
+      }
+
+      return {
+        m: 8.0,
+        k: 700,
+        angleDeg: 40.0,
+        h0: 3.4,
+        targetX: 16.8,
+        targetY: 2.1,
+        zoneHalf: 0.70,
+        hiddenCorrectCompression: 1.55
+      };
+    }
+
+    function newRound() {
+      params = generateFairRound();
+      selectedCompression = 1.00;
+
+      hasLaunched = false;
+      isAnimating = false;
+      motionPhase = "ready";
+
+      springStartTime = 0;
+      springDuration = 0;
+      projectileStartTime = 0;
+
+      animationResult = null;
+      lastResult = null;
+
+      UI.continueBtn.style.display = "none";
+      UI.launchBtn.style.display = "block";
+      UI.canvasHint.textContent = "Sin trayectoria previa. Calcula, ajusta y lanza.";
+
+      setControlsEnabled(true);
+      setStatus(
+        "warn",
+        "Misión lista",
+        "Lee los datos físicos, calcula la compresión necesaria y lanza la cápsula. Tienes un intento por ronda."
+      );
+
+      updateWorldBounds();
+      updateUI();
+      draw();
+    }
+
+    function updateWorldBounds() {
+      const cCorrect = componentsFromCompression(params.hiddenCorrectCompression, params);
+      const tApex = Math.max(cCorrect.vy / G, 0);
+      const apexY = params.h0 + cCorrect.vy * tApex - 0.5 * G * tApex * tApex;
+
+      world.minX = -MAX_COMPRESSION - 1.4;
+      world.maxX = Math.max(32, params.targetX + 5);
+      world.maxY = Math.max(10, params.targetY + 3, apexY + 1.5, params.h0 + 1.2);
+    }
+
+    function updateUI() {
+      UI.massValue.textContent = `${params.m.toFixed(1)} kg`;
+      UI.springValue.textContent = `${params.k.toFixed(0)} N/m`;
+      UI.angleValue.textContent = `${params.angleDeg.toFixed(1)}°`;
+      UI.initialHeightValue.textContent = `${params.h0.toFixed(1)} m`;
+      UI.targetDistanceValue.textContent = `${params.targetX.toFixed(1)} m`;
+      UI.targetHeightValue.textContent = `${params.targetY.toFixed(1)} m`;
+      UI.safeZoneValue.textContent = `±${params.zoneHalf.toFixed(2)} m`;
+
+      UI.compressionValue.textContent = selectedCompression.toFixed(2);
+
+      const meterPercent = ((selectedCompression - MIN_COMPRESSION) / (MAX_COMPRESSION - MIN_COMPRESSION)) * 100;
+      UI.compressionMeter.style.width = `${clamp(meterPercent, 0, 100)}%`;
+
+      UI.scoreBadge.textContent = `Ronda ${round} · Aciertos ${wins}/${attempts}`;
+    }
+
+    function setStatus(kind, title, body) {
+      UI.statusBox.className = `status ${kind}`;
+      UI.statusTitle.textContent = title;
+      UI.statusBody.innerHTML = body;
+    }
+
+    function setControlsEnabled(enabled) {
+      UI.coarseDownBtn.disabled = !enabled;
+      UI.coarseUpBtn.disabled = !enabled;
+      UI.fineDownBtn.disabled = !enabled;
+      UI.fineUpBtn.disabled = !enabled;
+      UI.launchBtn.disabled = !enabled;
+    }
+
+    function adjustCompression(delta) {
+      if (hasLaunched || isAnimating) return;
+
+      selectedCompression = clamp(
+        roundTo(selectedCompression + delta, 2),
+        MIN_COMPRESSION,
+        MAX_COMPRESSION
+      );
+
+      updateUI();
+      draw();
+      playTone(520, 0.025, "sine", 0.045);
+    }
+
+    function launch() {
+      if (hasLaunched || isAnimating) return;
+
+      hasLaunched = true;
+      isAnimating = true;
+      attempts++;
+
+      animationResult = evaluateShot(selectedCompression);
+      lastResult = animationResult;
+
+      springDuration = idealSpringReleaseTime();
+      springStartTime = performance.now();
+      projectileStartTime = 0;
+      motionPhase = "spring";
+
+      setControlsEnabled(false);
+      UI.launchBtn.disabled = true;
+      UI.canvasHint.textContent = "Empuje del resorte · t = 0.00 s";
+      setStatus(
+        "warn",
+        "El resorte se libera",
+        "La cápsula todavía está dentro del lanzador. El resorte la empuja hasta la boca antes del vuelo parabólico."
+      );
+
+      playTone(240, 0.12, "sawtooth", 0.05);
+      requestAnimationFrame(animate);
+    }
+
+    function finishLaunch() {
+      isAnimating = false;
+      motionPhase = "done";
+
+      if (lastResult.win) {
+        wins++;
+        playWinSound();
+      } else {
+        playFailSound();
+      }
+
+      updateUI();
+
+      UI.launchBtn.style.display = "none";
+      UI.continueBtn.style.display = "block";
+      UI.canvasHint.textContent = `Trayectoria final · marcas cada ${TIME_MARK_INTERVAL.toFixed(2)} s`;
+
+      const r = lastResult;
+      const vText = r.v0.toFixed(2);
+      const compressionText = selectedCompression.toFixed(2);
+      const flightTimeText = r.endTime.toFixed(2);
+      const pushTimeText = springDuration.toFixed(2);
+      const totalTimeText = (springDuration + r.endTime).toFixed(2);
+
+      if (r.win) {
+        setStatus(
+          "good",
+          "Entrega exitosa",
+          `
+            La cápsula cayó dentro de la zona segura y quedó sobre la plataforma.
+            <br>
+            Compresión usada: <strong>${compressionText} m</strong>.
+            Velocidad de salida: <strong>${vText} m/s</strong>.
+            Empuje del resorte: <strong>${pushTimeText} s</strong>.
+            Vuelo: <strong>${flightTimeText} s</strong>.
+            Tiempo total: <strong>${totalTimeText} s</strong>.
+          `
+        );
+      } else if (r.resultType === "no-height") {
+        setStatus(
+          "bad",
+          "Intento fallido",
+          `
+            ${r.reason}
+            <br>
+            Compresión usada: <strong>${compressionText} m</strong>.
+            Velocidad de salida: <strong>${vText} m/s</strong>.
+            Faltó energía para llegar a la altura requerida.
+          `
+        );
+      } else {
+        const direction = r.error < 0 ? "antes" : "después";
+        const energyText = r.error < 0
+          ? "Faltó energía en el lanzamiento."
+          : "El resorte fue comprimido demasiado.";
+
+        setStatus(
+          "bad",
+          "Intento fallido",
+          `
+            ${r.reason}
+            <br>
+            A la altura de la plataforma, la cápsula pasó <strong>${Math.abs(r.error).toFixed(2)} m</strong> ${direction} del centro.
+            <br>
+            ${energyText}
+            Velocidad de salida: <strong>${vText} m/s</strong>.
+          `
+        );
+      }
+
+      draw();
+    }
+
+    function continueRound() {
+      round++;
+      newRound();
+    }
+
+    function setupCanvasSize() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = Math.max(600, Math.floor(rect.width * dpr));
+      canvas.height = Math.max(420, Math.floor(rect.height * dpr));
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+
+    function canvasWidth() {
+      return canvas.getBoundingClientRect().width;
+    }
+
+    function canvasHeight() {
+      return canvas.getBoundingClientRect().height;
+    }
+
+    function sx(x) {
+      const w = canvasWidth();
+      const usable = w - world.padLeft - world.padRight;
+      return world.padLeft + ((x - world.minX) / (world.maxX - world.minX)) * usable;
+    }
+
+    function sy(y) {
+      const h = canvasHeight();
+      const usable = h - world.padTop - world.padBottom;
+      return h - world.padBottom - ((y - world.minY) / (world.maxY - world.minY)) * usable;
+    }
+
+    function currentProjectileTime() {
+      if (!animationResult) return 0;
+
+      if (motionPhase === "projectile") {
+        const elapsedRealSeconds = (performance.now() - projectileStartTime) / 1000;
+        return Math.min(animationResult.endTime, elapsedRealSeconds);
+      }
+
+      if (motionPhase === "done") {
+        return animationResult.endTime;
+      }
+
+      return 0;
+    }
+
+    function currentSpringCompression() {
+      if (motionPhase === "spring") {
+        const elapsed = (performance.now() - springStartTime) / 1000;
+        const omega = springAngularFrequency();
+        const t = Math.min(elapsed, springDuration);
+        return clamp(selectedCompression * Math.cos(omega * t), 0, selectedCompression);
+      }
+
+      if (motionPhase === "projectile" || motionPhase === "done") {
+        return 0;
+      }
+
+      return selectedCompression;
+    }
+
+    function getLauncherGeometry() {
+      const mouthX = 0;
+      const mouthY = params.h0;
+      const angle = degToRad(params.angleDeg);
+
+      const ux = Math.cos(angle);
+      const uy = Math.sin(angle);
+      const nx = -Math.sin(angle);
+      const ny = Math.cos(angle);
+
+      const length = MAX_COMPRESSION + LAUNCHER_EXTRA_LENGTH;
+
+      const rearX = mouthX - ux * length;
+      const rearY = mouthY - uy * length;
+
+      return {
+        mouthX,
+        mouthY,
+        rearX,
+        rearY,
+        angle,
+        ux,
+        uy,
+        nx,
+        ny,
+        length
+      };
+    }
+
+    function currentLoadWorldPosition() {
+      const g = getLauncherGeometry();
+      const remaining = currentSpringCompression();
+
+      return {
+        x: g.mouthX - g.ux * remaining,
+        y: g.mouthY - g.uy * remaining,
+        angle: g.angle
+      };
+    }
+
+    function draw() {
+      if (!params) return;
+
+      const w = canvasWidth();
+      const h = canvasHeight();
+
+      ctx.clearRect(0, 0, w, h);
+
+      drawSky(w, h);
+      drawGrid();
+      drawGround();
+      drawPlatform();
+      drawLauncher();
+
+      if (hasLaunched && (motionPhase === "projectile" || motionPhase === "done")) {
+        const currentT = currentProjectileTime();
+        drawTrajectory(currentT);
+        drawTimeMarkers(currentT);
+      }
+
+      drawCapsule();
+      drawLabels();
+    }
+
+    function drawSky(w, h) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, h);
+      gradient.addColorStop(0, "#cceeff");
+      gradient.addColorStop(0.6, "#eefaff");
+      gradient.addColorStop(1, "#ffffff");
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "rgba(255,255,255,0.72)";
+      drawCloud(w * 0.18, h * 0.16, 1.0);
+      drawCloud(w * 0.72, h * 0.14, 0.8);
+    }
+
+    function drawCloud(x, y, s) {
+      ctx.beginPath();
+      ctx.arc(x, y, 18 * s, 0, Math.PI * 2);
+      ctx.arc(x + 20 * s, y - 8 * s, 24 * s, 0, Math.PI * 2);
+      ctx.arc(x + 46 * s, y, 18 * s, 0, Math.PI * 2);
+      ctx.arc(x + 23 * s, y + 9 * s, 22 * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawGrid() {
+      ctx.save();
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(80, 130, 160, 0.13)";
+      ctx.fillStyle = "rgba(45, 80, 100, 0.62)";
+      ctx.font = "12px system-ui";
+      ctx.textAlign = "center";
+
+      for (let x = 0; x <= world.maxX; x += 5) {
+        const px = sx(x);
+        ctx.beginPath();
+        ctx.moveTo(px, sy(0));
+        ctx.lineTo(px, sy(world.maxY));
+        ctx.stroke();
+
+        ctx.fillText(`${x} m`, px, sy(0) + 24);
+      }
+
+      ctx.textAlign = "right";
+
+      for (let y = 0; y <= world.maxY; y += 2) {
+        const py = sy(y);
+        ctx.beginPath();
+        ctx.moveTo(sx(0), py);
+        ctx.lineTo(sx(world.maxX), py);
+        ctx.stroke();
+
+        if (y > 0) {
+          ctx.fillText(`${y} m`, sx(0) - 8, py + 4);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawGround() {
+      const y0 = sy(0);
+
+      ctx.fillStyle = "#9fd28b";
+      ctx.fillRect(0, y0, canvasWidth(), canvasHeight() - y0);
+
+      ctx.strokeStyle = "#5d9c51";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(canvasWidth(), y0);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(60, 120, 50, 0.18)";
+      for (let i = 0; i < 120; i++) {
+        const x = (i * 41) % canvasWidth();
+        const y = y0 + 8 + (i * 17) % 34;
+        ctx.fillRect(x, y, 14, 2);
+      }
+    }
+
+    function drawPlatform() {
+      const left = params.targetX - params.zoneHalf;
+      const right = params.targetX + params.zoneHalf;
+      const platformVisualHalf = Math.max(params.zoneHalf + 0.45, 1.1);
+
+      const pxL = sx(params.targetX - platformVisualHalf);
+      const pxR = sx(params.targetX + platformVisualHalf);
+      const py = sy(params.targetY);
+      const groundY = sy(0);
+
+      ctx.save();
+
+      ctx.strokeStyle = "#6b7d88";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(pxL + 16, py + 10);
+      ctx.lineTo(pxL + 16, groundY);
+      ctx.moveTo(pxR - 16, py + 10);
+      ctx.lineTo(pxR - 16, groundY);
+      ctx.stroke();
+
+      ctx.fillStyle = "#7e94a1";
+      roundRect(pxL, py - 8, pxR - pxL, 18, 7);
+      ctx.fill();
+
+      ctx.fillStyle = "#f6d365";
+      roundRect(sx(left), py - 14, sx(right) - sx(left), 8, 4);
+      ctx.fill();
+
+      ctx.strokeStyle = "#b8791f";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx(left), py - 18);
+      ctx.lineTo(sx(left), py + 10);
+      ctx.moveTo(sx(right), py - 18);
+      ctx.lineTo(sx(right), py + 10);
+      ctx.stroke();
+
+      ctx.fillStyle = "#34495e";
+      ctx.font = "700 13px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("plataforma", sx(params.targetX), py - 24);
+
+      ctx.restore();
+    }
+
+    function drawLauncher() {
+      const g = getLauncherGeometry();
+      const remaining = currentSpringCompression();
+
+      ctx.save();
+
+      ctx.strokeStyle = "#5d6d7e";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(sx(g.rearX), sy(g.rearY));
+      ctx.lineTo(sx(g.rearX), sy(0));
+      ctx.stroke();
+
+      ctx.fillStyle = "#34495e";
+      ctx.beginPath();
+      ctx.arc(sx(g.rearX), sy(0), 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#35495a";
+      ctx.lineWidth = 17;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(sx(g.rearX), sy(g.rearY));
+      ctx.lineTo(sx(g.mouthX), sy(g.mouthY));
+      ctx.stroke();
+
+      ctx.strokeStyle = "#8fb6c9";
+      ctx.lineWidth = 9;
+      ctx.beginPath();
+      ctx.moveTo(sx(g.rearX), sy(g.rearY));
+      ctx.lineTo(sx(g.mouthX), sy(g.mouthY));
+      ctx.stroke();
+
+      drawSpringInsideLauncher(g, remaining);
+
+      ctx.fillStyle = "#2f3f4f";
+      ctx.font = "700 13px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText("lanzador", sx(g.rearX + 0.75), sy(0) - 12);
+
+      ctx.fillStyle = "rgba(52,73,94,0.82)";
+      ctx.font = "700 12px system-ui";
+      ctx.fillText("salida", sx(g.mouthX), sy(g.mouthY) - 18);
+
+      ctx.restore();
+    }
+
+    function drawSpringInsideLauncher(g, remainingCompression) {
+      const anchorDistance = MAX_COMPRESSION + 0.22;
+      const loadDistance = remainingCompression;
+
+      const anchorX = g.mouthX - g.ux * anchorDistance;
+      const anchorY = g.mouthY - g.uy * anchorDistance;
+
+      const loadX = g.mouthX - g.ux * loadDistance;
+      const loadY = g.mouthY - g.uy * loadDistance;
+
+      const springLength = Math.max(0.12, anchorDistance - loadDistance);
+      const turns = clamp(Math.round(springLength * 6), 4, 20);
+      const amp = Math.min(0.09, springLength / 4);
+
+      ctx.save();
+      ctx.strokeStyle = "#d97924";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      for (let i = 0; i <= turns * 2; i++) {
+        const t = i / (turns * 2);
+        const along = springLength * t;
+        const offset = (i % 2 === 0 ? -1 : 1) * amp;
+
+        const wx = anchorX + g.ux * along + g.nx * offset;
+        const wy = anchorY + g.uy * along + g.ny * offset;
+
+        if (i === 0) {
+          ctx.moveTo(sx(wx), sy(wy));
+        } else {
+          ctx.lineTo(sx(wx), sy(wy));
+        }
+      }
+
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(95, 75, 45, 0.9)";
+      ctx.beginPath();
+      ctx.arc(sx(anchorX), sy(anchorY), 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawTrajectory(currentT) {
+      const r = animationResult || lastResult;
+      if (!r) return;
+
+      const tEnd = motionPhase === "projectile" ? currentT : r.endTime;
+      const steps = 140;
+
+      ctx.save();
+
+      ctx.strokeStyle = "rgba(32, 110, 160, 0.72)";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 7]);
+      ctx.beginPath();
+
+      for (let i = 0; i <= steps; i++) {
+        const t = tEnd * (i / steps);
+        const x = xAtTime(t, selectedCompression);
+        const y = Math.max(0, yAtTime(t, selectedCompression));
+
+        if (i === 0) {
+          ctx.moveTo(sx(x), sy(y));
+        } else {
+          ctx.lineTo(sx(x), sy(y));
+        }
+      }
+
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (motionPhase === "done" && r.crossX !== null) {
+        ctx.fillStyle = r.win ? "#20895c" : "#b94343";
+        ctx.beginPath();
+        ctx.arc(sx(r.crossX), sy(params.targetY), 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(0,0,0,0.18)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx(r.crossX), sy(params.targetY));
+        ctx.lineTo(sx(r.crossX), sy(0));
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawTimeMarkers(currentT) {
+      const r = animationResult || lastResult;
+      if (!r) return;
+
+      const limitT = motionPhase === "projectile" ? currentT : r.endTime;
+
+      ctx.save();
+
+      for (let t = 0; t <= limitT + 0.0001; t += TIME_MARK_INTERVAL) {
+        const x = xAtTime(t, selectedCompression);
+        const y = Math.max(0, yAtTime(t, selectedCompression));
+
+        ctx.fillStyle = "rgba(31, 45, 61, 0.75)";
+        ctx.beginPath();
+        ctx.arc(sx(x), sy(y), 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (t > 0 && Math.abs((t / 0.5) - Math.round(t / 0.5)) < 0.001) {
+          ctx.fillStyle = "rgba(31, 45, 61, 0.68)";
+          ctx.font = "700 11px system-ui";
+          ctx.textAlign = "center";
+          ctx.fillText(`${t.toFixed(1)}s`, sx(x), sy(y) - 9);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawCapsule() {
+      let px;
+      let py;
+      let angle;
+
+      if (motionPhase === "ready" || motionPhase === "spring") {
+        const load = currentLoadWorldPosition();
+        px = sx(load.x);
+        py = sy(load.y);
+        angle = load.angle;
+        drawCapsuleAt(px, py, angle);
+        return;
+      }
+
+      if (motionPhase === "projectile") {
+        const t = currentProjectileTime();
+        const c = componentsFromCompression(selectedCompression);
+
+        const wx = c.vx * t;
+        const wy = Math.max(0, params.h0 + c.vy * t - 0.5 * G * t * t);
+        const vyNow = c.vy - G * t;
+
+        px = sx(wx);
+        py = sy(wy);
+        angle = Math.atan2(vyNow, c.vx);
+
+        drawCapsuleAt(px, py, angle);
+        return;
+      }
+
+      if (motionPhase === "done" && lastResult) {
+        if (lastResult.win && lastResult.crossX !== null) {
+          px = sx(lastResult.crossX);
+          py = sy(params.targetY) - 18;
+          angle = 0;
+          drawCapsuleAt(px, py, angle);
+          return;
+        }
+
+        const finalX = xAtTime(lastResult.endTime, selectedCompression);
+        px = sx(finalX);
+        py = sy(0) - 10;
+        angle = 0;
+        drawCapsuleAt(px, py, angle);
+        return;
+      }
+    }
+
+    function drawCapsuleAt(px, py, angle) {
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(-angle);
+
+      ctx.fillStyle = "#f39b2f";
+      roundRect(-16, -8, 32, 16, 8);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffe0a6";
+      ctx.beginPath();
+      ctx.arc(9, 0, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#9c5b13";
+      ctx.lineWidth = 2;
+      roundRect(-16, -8, 32, 16, 8);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawLabels() {
+      ctx.save();
+
+      ctx.fillStyle = "rgba(31, 45, 61, 0.78)";
+      ctx.font = "700 13px system-ui";
+      ctx.textAlign = "center";
+
+      ctx.fillText("0 m", sx(0), sy(0) + 24);
+      ctx.fillText(`${params.targetX.toFixed(1)} m`, sx(params.targetX), sy(0) + 24);
+
+      ctx.strokeStyle = "rgba(80, 110, 130, 0.35)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(sx(params.targetX), sy(0));
+      ctx.lineTo(sx(params.targetX), sy(params.targetY));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.restore();
+    }
+
+    function animate() {
+      if (!isAnimating || !animationResult) return;
+
+      if (motionPhase === "spring") {
+        const elapsed = (performance.now() - springStartTime) / 1000;
+        UI.canvasHint.textContent = `Empuje del resorte · t = ${elapsed.toFixed(2)} s`;
+
+        draw();
+
+        if (elapsed >= springDuration) {
+          motionPhase = "projectile";
+          projectileStartTime = performance.now();
+          UI.canvasHint.textContent = "t = 0.00 s · vuelo parabólico en tiempo real";
+        }
+
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      if (motionPhase === "projectile") {
+        const t = currentProjectileTime();
+        UI.canvasHint.textContent = `t = ${t.toFixed(2)} s · vuelo parabólico en tiempo real`;
+
+        draw();
+
+        if (t >= animationResult.endTime - 0.001) {
+          finishLaunch();
+          return;
+        }
+
+        requestAnimationFrame(animate);
+      }
+    }
+
+    function roundRect(x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.lineTo(x + w - rr, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+      ctx.lineTo(x + w, y + h - rr);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+      ctx.lineTo(x + rr, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+      ctx.lineTo(x, y + rr);
+      ctx.quadraticCurveTo(x, y, x + rr, y);
+    }
+
+    function toggleSound() {
+      audioEnabled = !audioEnabled;
+
+      if (audioEnabled && !audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+
+      UI.soundBtn.textContent = audioEnabled ? "Sonido: encendido" : "Sonido: apagado";
+      playTone(660, 0.06, "sine", 0.05);
+    }
+
+    function playTone(freq, duration, type = "sine", volume = 0.05) {
+      if (!audioEnabled || !audioCtx) return;
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = type;
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(volume, audioCtx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration + 0.02);
+    }
+
+    function playWinSound() {
+      playTone(520, 0.08, "sine", 0.06);
+      setTimeout(() => playTone(700, 0.09, "sine", 0.06), 90);
+      setTimeout(() => playTone(880, 0.12, "sine", 0.06), 190);
+    }
+
+    function playFailSound() {
+      playTone(220, 0.10, "triangle", 0.05);
+      setTimeout(() => playTone(160, 0.13, "triangle", 0.05), 120);
+    }
+
+    UI.coarseDownBtn.addEventListener("click", () => adjustCompression(-COARSE_STEP));
+    UI.coarseUpBtn.addEventListener("click", () => adjustCompression(COARSE_STEP));
+    UI.fineDownBtn.addEventListener("click", () => adjustCompression(-FINE_STEP));
+    UI.fineUpBtn.addEventListener("click", () => adjustCompression(FINE_STEP));
+    UI.launchBtn.addEventListener("click", launch);
+    UI.continueBtn.addEventListener("click", continueRound);
+    UI.soundBtn.addEventListener("click", toggleSound);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        adjustCompression(-COARSE_STEP);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        adjustCompression(COARSE_STEP);
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        adjustCompression(-FINE_STEP);
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        adjustCompression(FINE_STEP);
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        launch();
+      }
+
+      if (event.key.toLowerCase() === "r") {
+        if (hasLaunched && !isAnimating) {
+          continueRound();
+        }
+      }
+    });
+
+    window.addEventListener("resize", setupCanvasSize);
+
+    newRound();
+    setupCanvasSize();
+  </script>
+</body>
+</html>
